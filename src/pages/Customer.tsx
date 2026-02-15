@@ -88,7 +88,7 @@ const Customer = () => {
   const loyaltyPct = (loyalty.points / loyalty.nextTierPoints) * 100;
 
   return (
-    <div className="dark min-h-screen bg-background max-w-md mx-auto">
+    <div className="min-h-screen bg-background max-w-md mx-auto">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/90 backdrop-blur-xl border-b p-4">
         <div className="flex items-center justify-between">

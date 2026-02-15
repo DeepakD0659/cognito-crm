@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, ChefHat, Utensils, Package, Users, ShoppingCart,
-  Bell, ChevronDown, Menu, X, Brain,
+  Bell, ChevronDown, Menu, X, Brain, Sun, Moon,
 } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 import { useAppStore } from '@/store/useAppStore';
 import { branches } from '@/mockData';
 import type { Role } from '@/types';
@@ -53,7 +54,9 @@ interface LayoutProps {
 const RoleBasedLayout = ({ children }: LayoutProps) => {
   const { currentRole, setRole, selectedBranch, setBranch, notifications, markNotificationRead, cart } = useAppStore();
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const menuItems = roleMenus[currentRole];
   const unreadCount = notifications.filter(n => !n.read).length;
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
@@ -63,10 +66,15 @@ const RoleBasedLayout = ({ children }: LayoutProps) => {
     return <>{children}</>;
   }
 
-  const isKDS = currentRole === 'KITCHEN';
+  const handleRoleChange = (role: Role) => {
+    setRole(role);
+    // Navigate to the first available route for the new role
+    const firstRoute = roleMenus[role][0]?.path || '/';
+    navigate(firstRoute);
+  };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isKDS ? 'dark bg-background' : 'dark bg-background'}`}>
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Top Nav */}
       <header className="h-14 border-b border-border bg-card/80 backdrop-blur-xl flex items-center px-4 gap-3 sticky top-0 z-50">
         {/* Mobile menu */}
@@ -119,12 +127,17 @@ const RoleBasedLayout = ({ children }: LayoutProps) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {(Object.keys(roleLabels) as Role[]).map(role => (
-              <DropdownMenuItem key={role} onClick={() => setRole(role)}>
+              <DropdownMenuItem key={role} onClick={() => handleRoleChange(role)}>
                 {roleLabels[role]}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Theme Toggle */}
+        <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </Button>
 
         {/* Notifications */}
         <Popover>
