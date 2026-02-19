@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Wand2, AlertTriangle, Check, Loader2, DollarSign } from 'lucide-react';
+import { Users, Wand2, AlertTriangle, Check, Loader2, DollarSign, Clock, MapPin, LogIn, LogOut } from 'lucide-react';
 import { getStaff, getMockRoster, getPayrollSummary } from '@/mockData';
+import { useAppStore } from '@/store/useAppStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,8 @@ const Rostering = () => {
   const [conflicts, setConflicts] = useState<string[]>([]);
   const { toast } = useToast();
 
+  const { clockRecords, clockIn, clockOut } = useAppStore();
+
   const getSlot = (staffId: string, day: number) => roster.find(r => r.staffId === staffId && r.day === day);
 
   const runAI = () => {
@@ -51,7 +54,6 @@ const Rostering = () => {
         i++;
       } else {
         clearInterval(timer);
-        // Generate mock roster with a conflict
         const newRoster: ShiftSlot[] = [];
         staff.forEach(s => {
           s.availability.forEach((avail, day) => {
@@ -61,12 +63,61 @@ const Rostering = () => {
             }
           });
         });
-        // Add intentional conflict
         newRoster.push({ staffId: 'staff-4', day: 2, shift: 'evening', conflict: 'Deepak is double-booked on Wed' });
         setGeneratedRoster(newRoster);
         setConflicts(['Deepak Sharma is double-booked on Wednesday (Morning + Evening = 16hrs, exceeds limit)']);
       }
     }, 800);
+  };
+
+  const handleClockIn = (staffMember: typeof staff[0]) => {
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find scheduled shift for today
+    const dayOfWeek = (today.getDay() + 6) % 7; // Mon=0
+    const scheduledSlot = roster.find(r => r.staffId === staffMember.id && r.day === dayOfWeek);
+    let scheduledStart: Date | undefined;
+    if (scheduledSlot) {
+      const hours = scheduledSlot.shift === 'morning' ? 8 : scheduledSlot.shift === 'afternoon' ? 14 : 18;
+      scheduledStart = new Date(today.getTime() + hours * 3600000);
+    }
+
+    const isLate = scheduledStart ? (now.getTime() - scheduledStart.getTime()) > 15 * 60000 : false;
+
+    clockIn({
+      staffId: staffMember.id,
+      staffName: staffMember.name,
+      clockIn: now,
+      isLate,
+      scheduledStart,
+      geoVerified: true,
+    });
+
+    toast({
+      title: isLate ? '⏰ Late Clock-In' : '✅ Clocked In',
+      description: `${staffMember.name} clocked in at ${now.toLocaleTimeString()}${isLate ? ' (LATE)' : ''}`,
+    });
+  };
+
+  const handleClockOut = (recordId: string, staffName: string) => {
+    clockOut(recordId);
+    toast({
+      title: '👋 Clocked Out',
+      description: `${staffName} clocked out at ${new Date().toLocaleTimeString()}`,
+    });
+  };
+
+  const isStaffClockedIn = (staffId: string) => {
+    return clockRecords.find(r => r.staffId === staffId && !r.clockOut);
+  };
+
+  // Compute weekly OT
+  const getWeeklyHours = (staffId: string) => {
+    return clockRecords
+      .filter(r => r.staffId === staffId && r.hoursWorked)
+      .reduce((s, r) => s + (r.hoursWorked || 0), 0);
   };
 
   const wizardSteps = [
@@ -199,6 +250,7 @@ const Rostering = () => {
       <Tabs defaultValue="roster">
         <TabsList>
           <TabsTrigger value="roster">Weekly Roster</TabsTrigger>
+          <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="payroll">Payroll Preview</TabsTrigger>
         </TabsList>
 
@@ -238,6 +290,101 @@ const Rostering = () => {
                 </tbody>
               </table>
             </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="attendance" className="mt-4 space-y-4">
+          {/* Clock In/Out Panel */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Today's Attendance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {staff.map(s => {
+                const activeRecord = isStaffClockedIn(s.id);
+                const weeklyHours = getWeeklyHours(s.id);
+                const isOT = weeklyHours > 44;
+                return (
+                  <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/30">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2.5 h-2.5 rounded-full ${activeRecord ? 'bg-success' : 'bg-muted-foreground/30'}`} />
+                      <div>
+                        <p className="text-sm font-medium">{s.name}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Badge variant="outline" className="text-[9px]">{s.role}</Badge>
+                          {weeklyHours > 0 && (
+                            <span className={isOT ? 'text-warning font-medium' : ''}>
+                              {weeklyHours.toFixed(1)}h this week {isOT && '(OT)'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {activeRecord && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <MapPin className="w-3 h-3 text-success" />
+                          {activeRecord.isLate && <Badge variant="destructive" className="text-[9px]">LATE</Badge>}
+                        </div>
+                      )}
+                      {activeRecord ? (
+                        <Button size="sm" variant="outline" className="text-xs" onClick={() => handleClockOut(activeRecord.id, s.name)}>
+                          <LogOut className="w-3 h-3 mr-1" /> Clock Out
+                        </Button>
+                      ) : (
+                        <Button size="sm" className="text-xs" onClick={() => handleClockIn(s)}>
+                          <LogIn className="w-3 h-3 mr-1" /> Clock In
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          {/* Clock Records Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Clock Records</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Staff</TableHead>
+                    <TableHead>Clock In</TableHead>
+                    <TableHead>Clock Out</TableHead>
+                    <TableHead>Hours</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Geo</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {clockRecords.map(r => (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium text-sm">{r.staffName}</TableCell>
+                      <TableCell className="text-xs">{new Date(r.clockIn).toLocaleTimeString()}</TableCell>
+                      <TableCell className="text-xs">{r.clockOut ? new Date(r.clockOut).toLocaleTimeString() : '—'}</TableCell>
+                      <TableCell className="text-xs">{r.hoursWorked ? `${r.hoursWorked}h` : 'Active'}</TableCell>
+                      <TableCell>
+                        {r.isLate ? <Badge variant="destructive" className="text-[9px]">LATE</Badge> : <Badge variant="outline" className="text-[9px]">ON TIME</Badge>}
+                      </TableCell>
+                      <TableCell>
+                        {r.geoVerified ? <MapPin className="w-3 h-3 text-success" /> : <MapPin className="w-3 h-3 text-destructive" />}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {clockRecords.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground text-sm py-8">No clock records</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
           </Card>
         </TabsContent>
 

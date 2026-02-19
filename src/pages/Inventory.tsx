@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Package, AlertTriangle, Plus, Check, Loader2, Search } from 'lucide-react';
+import { Package, AlertTriangle, Plus, Check, Search, FileText, Truck, ShieldCheck } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { getSuppliers } from '@/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
@@ -15,12 +16,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import WizardWrapper from '@/components/WizardWrapper';
 import { useToast } from '@/hooks/use-toast';
 
+const poStatusColors: Record<string, string> = {
+  DRAFT: 'outline',
+  PENDING_APPROVAL: 'secondary',
+  APPROVED: 'default',
+  SHIPPED: 'outline',
+  RECEIVED: 'default',
+};
+
 const Inventory = () => {
-  const { inventory, restockItem } = useAppStore();
+  const { inventory, restockItem, purchaseOrders, approvePO, receivePO, createPO } = useAppStore();
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<string>('');
+  const [approvalChecked, setApprovalChecked] = useState(false);
   const { toast } = useToast();
   const suppliers = getSuppliers();
 
@@ -32,11 +42,29 @@ const Inventory = () => {
   };
 
   const handleWizardComplete = () => {
-    selectedItems.forEach(id => restockItem(id, 50));
+    const supplier = suppliers.find(s => s.id === selectedSupplier);
+    const items = selectedItems.map(id => {
+      const item = inventory.find(i => i.id === id)!;
+      return { inventoryId: id, name: item.name, quantity: 50, unit: item.unit };
+    });
+
+    createPO({
+      items,
+      supplierId: selectedSupplier,
+      supplierName: supplier?.name || '',
+      status: approvalChecked ? 'APPROVED' : 'PENDING_APPROVAL',
+      approvedBy: approvalChecked ? 'Lisa Nguyen' : undefined,
+    });
+
+    if (approvalChecked) {
+      selectedItems.forEach(id => restockItem(id, 50));
+    }
+
     setWizardOpen(false);
     setSelectedItems([]);
     setSelectedSupplier('');
-    toast({ title: '📦 Purchase Order Sent', description: `${selectedItems.length} items reordered from supplier.` });
+    setApprovalChecked(false);
+    toast({ title: '📦 Purchase Order Created', description: `${selectedItems.length} items ordered.` });
   };
 
   const wizardSteps = [
@@ -79,7 +107,41 @@ const Inventory = () => {
       validate: () => !!selectedSupplier,
     },
     {
-      title: 'Review Order',
+      title: 'Approval Gate',
+      description: 'Manager approval required for purchase orders:',
+      content: (
+        <div className="space-y-4">
+          <Card className="bg-accent/30">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                <p className="text-sm font-medium">Manager Approval</p>
+              </div>
+              <p className="text-xs text-muted-foreground">This PO requires manager sign-off before processing.</p>
+              <label className="flex items-center gap-3 p-3 rounded-lg bg-card cursor-pointer">
+                <Checkbox checked={approvalChecked} onCheckedChange={(v) => setApprovalChecked(!!v)} />
+                <div>
+                  <p className="text-sm font-medium">Approve as Lisa Nguyen (Manager)</p>
+                  <p className="text-xs text-muted-foreground">Simulate manager approval</p>
+                </div>
+              </label>
+            </CardContent>
+          </Card>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Email Preview:</p>
+            <Card className="bg-card">
+              <CardContent className="p-3 text-xs space-y-1">
+                <p><strong>To:</strong> {suppliers.find(s => s.id === selectedSupplier)?.name}</p>
+                <p><strong>Subject:</strong> Purchase Order — MH Cognition</p>
+                <p className="text-muted-foreground mt-2">Dear Supplier,<br/>Please supply the following items at earliest convenience...</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Review & Confirm',
       content: (
         <div className="space-y-3">
           <p className="text-sm font-medium">Order Summary</p>
@@ -92,8 +154,9 @@ const Inventory = () => {
               </div>
             ) : null;
           })}
-          <div className="pt-2 border-t text-sm">
+          <div className="pt-2 border-t text-sm space-y-1">
             <p>Supplier: <span className="font-medium">{suppliers.find(s => s.id === selectedSupplier)?.name}</span></p>
+            <p>Status: <Badge variant="outline" className="text-[10px]">{approvalChecked ? 'Approved' : 'Pending Approval'}</Badge></p>
           </div>
         </div>
       ),
@@ -107,8 +170,10 @@ const Inventory = () => {
               <Check className="w-8 h-8 text-success" />
             </div>
           </motion.div>
-          <h3 className="text-lg font-bold">Purchase Order Sent!</h3>
-          <p className="text-sm text-muted-foreground mt-2">Your order has been submitted successfully.</p>
+          <h3 className="text-lg font-bold">Purchase Order Created!</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            {approvalChecked ? 'Order approved and inventory updated.' : 'Awaiting manager approval.'}
+          </p>
         </div>
       ),
     },
@@ -128,7 +193,6 @@ const Inventory = () => {
         </Button>
       </div>
 
-      {/* Smart Alerts */}
       {lowStockItems.length > 0 && (
         <Card className="border-warning/50 bg-warning/5">
           <CardContent className="p-4 flex items-center gap-3">
@@ -141,49 +205,101 @@ const Inventory = () => {
         </Card>
       )}
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search inventory..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
-      </div>
+      <Tabs defaultValue="stock">
+        <TabsList>
+          <TabsTrigger value="stock">Live Stock</TabsTrigger>
+          <TabsTrigger value="orders">Purchase Orders ({purchaseOrders.length})</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Unit</TableHead>
-              <TableHead>Reorder Pt.</TableHead>
-              <TableHead>Expiry</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((item, i) => (
-              <motion.tr
-                key={item.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.03 }}
-                className={`border-b ${item.status !== 'OK' ? 'bg-destructive/5' : ''}`}
-              >
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>{item.stock}</TableCell>
-                <TableCell>{item.unit}</TableCell>
-                <TableCell>{item.reorderPoint}</TableCell>
-                <TableCell className="text-xs">{item.expiryDate}</TableCell>
-                <TableCell>
-                  <Badge variant={item.status === 'CRITICAL' ? 'destructive' : item.status === 'LOW' ? 'outline' : 'default'}>
-                    {item.status}
-                  </Badge>
-                </TableCell>
-              </motion.tr>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+        <TabsContent value="stock" className="mt-4 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search inventory..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          </div>
 
-      {/* Restock Wizard Dialog */}
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Reorder Pt.</TableHead>
+                  <TableHead>Expiry</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((item, i) => (
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className={`border-b ${item.status !== 'OK' ? 'bg-destructive/5' : ''}`}
+                  >
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{item.stock}</TableCell>
+                    <TableCell>{item.unit}</TableCell>
+                    <TableCell>{item.reorderPoint}</TableCell>
+                    <TableCell className="text-xs">{item.expiryDate}</TableCell>
+                    <TableCell>
+                      <Badge variant={item.status === 'CRITICAL' ? 'destructive' : item.status === 'LOW' ? 'outline' : 'default'}>
+                        {item.status}
+                      </Badge>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="orders" className="mt-4">
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>PO #</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>GRN</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {purchaseOrders.map(po => (
+                  <TableRow key={po.id}>
+                    <TableCell className="font-mono text-xs">{po.id}</TableCell>
+                    <TableCell>{po.supplierName}</TableCell>
+                    <TableCell className="text-xs">{po.items.map(i => i.name).join(', ')}</TableCell>
+                    <TableCell>
+                      <Badge variant={po.status === 'RECEIVED' ? 'default' : po.status === 'APPROVED' ? 'default' : 'outline'} className="text-[10px]">
+                        {po.status.replace('_', ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-[10px]">{po.grnNumber || '—'}</TableCell>
+                    <TableCell>
+                      {po.status === 'PENDING_APPROVAL' && (
+                        <Button size="sm" variant="outline" className="text-xs" onClick={() => approvePO(po.id, 'Lisa Nguyen')}>
+                          <ShieldCheck className="w-3 h-3 mr-1" /> Approve
+                        </Button>
+                      )}
+                      {po.status === 'APPROVED' && (
+                        <Button size="sm" variant="outline" className="text-xs" onClick={() => receivePO(po.id)}>
+                          <Truck className="w-3 h-3 mr-1" /> Receive
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-auto">
           <WizardWrapper

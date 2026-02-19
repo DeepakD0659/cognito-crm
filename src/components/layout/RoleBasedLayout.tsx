@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, ChefHat, Utensils, Package, Users, ShoppingCart,
-  Bell, ChevronDown, Menu, X, Brain, Sun, Moon,
+  Bell, ChevronDown, Menu, X, Brain, Sun, Moon, Monitor,
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppStore } from '@/store/useAppStore';
@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 const roleMenus: Record<Role, { label: string; icon: React.ElementType; path: string }[]> = {
   ADMIN: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { label: 'POS Terminal', icon: Monitor, path: '/pos' },
     { label: 'Operations', icon: Utensils, path: '/operations' },
     { label: 'Kitchen Display', icon: ChefHat, path: '/kds' },
     { label: 'Inventory', icon: Package, path: '/inventory' },
@@ -27,6 +28,7 @@ const roleMenus: Record<Role, { label: string; icon: React.ElementType; path: st
   ],
   MANAGER: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { label: 'POS Terminal', icon: Monitor, path: '/pos' },
     { label: 'Operations', icon: Utensils, path: '/operations' },
     { label: 'Kitchen Display', icon: ChefHat, path: '/kds' },
     { label: 'Inventory', icon: Package, path: '/inventory' },

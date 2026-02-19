@@ -10,6 +10,7 @@ import KDS from "./pages/KDS";
 import Inventory from "./pages/Inventory";
 import Rostering from "./pages/Rostering";
 import Customer from "./pages/Customer";
+import POS from "./pages/POS";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/kds" element={<KDS />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/rostering" element={<Rostering />} />
+            <Route path="/pos" element={<POS />} />
             <Route path="/customer" element={<Customer />} />
             <Route path="/qr-order" element={<Customer />} />
             <Route path="*" element={<NotFound />} />

@@ -40,6 +40,7 @@ export interface InventoryItem {
   expiryDate: string;
   status: 'OK' | 'LOW' | 'CRITICAL';
   category: string;
+  version: number; // optimistic locking
 }
 
 export interface Supplier {
@@ -49,6 +50,12 @@ export interface Supplier {
   rating: number;
 }
 
+export interface ItemModifier {
+  id: string;
+  label: string;
+  price: number;
+}
+
 export interface OrderItem {
   id: string;
   name: string;
@@ -56,6 +63,7 @@ export interface OrderItem {
   quantity: number;
   category: 'FOOD' | 'DRINK';
   image?: string;
+  modifiers?: ItemModifier[];
 }
 
 export interface Order {
@@ -66,6 +74,8 @@ export interface Order {
   timestamp: Date;
   waiter?: string;
   route: 'KITCHEN' | 'BAR' | 'BOTH';
+  locked?: boolean; // prevents modifications after bill request
+  guestCount?: number;
 }
 
 export type TableStatus = 'vacant' | 'occupied' | 'reserved' | 'alert';
@@ -126,6 +136,7 @@ export interface CustomerMenuItem {
   category: string;
   popular?: boolean;
   upsellItems?: string[];
+  availableModifiers?: ItemModifier[];
 }
 
 export interface LoyaltyInfo {
@@ -137,6 +148,7 @@ export interface LoyaltyInfo {
 
 export interface CartItem extends CustomerMenuItem {
   quantity: number;
+  selectedModifiers?: ItemModifier[];
 }
 
 export interface AIRecommendation {
@@ -146,6 +158,59 @@ export interface AIRecommendation {
   impact: string;
   type: 'revenue' | 'staffing' | 'menu';
   applied: boolean;
+}
+
+// === New types for 8-flow workflow engine ===
+
+export type PaymentMethod = 'CASH' | 'CARD' | 'E_WALLET';
+export type PaymentStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+export interface Payment {
+  id: string;
+  orderId: string;
+  tableId: number;
+  method: PaymentMethod;
+  amount: number;
+  tip?: number;
+  status: PaymentStatus;
+  splitDetails?: { guestIndex: number; amount: number }[];
+  receiptId: string;
+  timestamp: Date;
+}
+
+export type POStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'SHIPPED' | 'RECEIVED';
+
+export interface PurchaseOrder {
+  id: string;
+  items: { inventoryId: string; name: string; quantity: number; unit: string }[];
+  supplierId: string;
+  supplierName: string;
+  status: POStatus;
+  approvedBy?: string;
+  grnNumber?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ClockRecord {
+  id: string;
+  staffId: string;
+  staffName: string;
+  clockIn: Date;
+  clockOut?: Date;
+  isLate: boolean;
+  scheduledStart?: Date;
+  geoVerified: boolean;
+  hoursWorked?: number;
+}
+
+export interface Feedback {
+  id: string;
+  orderId: string;
+  rating: number;
+  comment?: string;
+  loyaltyPointsAwarded: number;
+  timestamp: Date;
 }
 
 export interface AppState {
@@ -158,6 +223,14 @@ export interface AppState {
   cart: CartItem[];
   orderingEnabled: boolean;
 
+  // New state slices
+  payments: Payment[];
+  purchaseOrders: PurchaseOrder[];
+  clockRecords: ClockRecord[];
+  feedbackRecords: Feedback[];
+  lockedTables: Set<number>;
+
+  // Existing actions
   setRole: (role: Role) => void;
   setBranch: (branch: BranchId) => void;
   addOrder: (order: Order) => void;
@@ -172,4 +245,16 @@ export interface AppState {
   clearCart: () => void;
   toggleOrdering: () => void;
   restockItem: (itemId: string, amount: number) => void;
+
+  // New actions
+  processPayment: (payment: Omit<Payment, 'id' | 'timestamp' | 'receiptId'>) => void;
+  lockTable: (tableId: number) => void;
+  unlockTable: (tableId: number) => void;
+  lockOrder: (orderId: string) => void;
+  createPO: (po: Omit<PurchaseOrder, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  approvePO: (poId: string, approver: string) => void;
+  receivePO: (poId: string) => void;
+  clockIn: (record: Omit<ClockRecord, 'id'>) => void;
+  clockOut: (recordId: string) => void;
+  submitFeedback: (feedback: Omit<Feedback, 'id' | 'timestamp'>) => void;
 }

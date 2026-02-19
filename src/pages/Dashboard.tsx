@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  DollarSign, TrendingUp, Users, Utensils, Brain, Sparkles, Check, Loader2
+  DollarSign, TrendingUp, Users, Utensils, Brain, Sparkles, Check, Loader2, ScrollText, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { getKPIData, getSalesData, getMenuItems, getAIRecommendations } from '@/mockData';
+import { getAuditEntries } from '@/lib/auditLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,10 @@ const Dashboard = () => {
   const [recommendations, setRecommendations] = useState(getAIRecommendations());
   const [aiExpanded, setAiExpanded] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
+  const [auditExpanded, setAuditExpanded] = useState(false);
   const { toast } = useToast();
+
+  const auditEntries = getAuditEntries();
 
   const kpiCards = [
     { label: 'Total Sales', value: `$${kpi.totalSales.toLocaleString()}`, trend: kpi.salesTrend, icon: DollarSign, color: 'text-primary' },
@@ -166,6 +170,40 @@ const Dashboard = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Audit Log */}
+      <Card>
+        <CardHeader
+          className="cursor-pointer"
+          onClick={() => setAuditExpanded(!auditExpanded)}
+        >
+          <CardTitle className="text-base flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <ScrollText className="w-4 h-4" /> Audit Trail
+              <Badge variant="outline" className="text-[10px]">{auditEntries.length}</Badge>
+            </span>
+            {auditExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </CardTitle>
+        </CardHeader>
+        {auditExpanded && (
+          <CardContent>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {auditEntries.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No audit entries yet. Interact with the system to generate logs.</p>
+              ) : (
+                auditEntries.slice(0, 50).map(entry => (
+                  <div key={entry.id} className="flex items-center gap-3 text-xs p-2 rounded bg-accent/30">
+                    <Badge variant="outline" className="text-[9px] shrink-0">{entry.flowId}</Badge>
+                    <span className="font-medium shrink-0">{entry.action}</span>
+                    <span className="text-muted-foreground truncate flex-1">by {entry.actor}</span>
+                    <span className="text-muted-foreground shrink-0">{entry.timestamp.toLocaleTimeString()}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        )}
+      </Card>
     </div>
   );
 };
