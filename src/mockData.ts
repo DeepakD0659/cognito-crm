@@ -1,4 +1,4 @@
-import type { Branch, InventoryItem, Order, FloorTable, Staff, Supplier, SalesDataPoint, MenuItemSales, KPIData, CustomerMenuItem, PayrollSummary, ShiftSlot, LoyaltyInfo, AIRecommendation, Notification, BranchId } from './types';
+import type { Branch, InventoryItem, Order, FloorTable, Staff, Supplier, SalesDataPoint, MenuItemSales, KPIData, CustomerMenuItem, PayrollSummary, ShiftSlot, LoyaltyInfo, AIRecommendation, Notification, BranchId, PurchaseOrder, ClockRecord, Payment } from './types';
 
 export const branches: Branch[] = [
   { id: 'branch-a', name: 'Downtown Flagship', performanceScore: 92 },
@@ -36,16 +36,16 @@ export const getMenuItems = (): MenuItemSales[] => [
 ];
 
 export const getInventory = (): InventoryItem[] => [
-  { id: 'inv-1', name: 'Beef Patty', stock: 45, unit: 'pcs', reorderPoint: 50, expiryDate: '2026-02-20', status: 'LOW', category: 'Protein' },
-  { id: 'inv-2', name: 'Brioche Bun', stock: 120, unit: 'pcs', reorderPoint: 40, expiryDate: '2026-02-18', status: 'OK', category: 'Bakery' },
-  { id: 'inv-3', name: 'Truffle Oil', stock: 3, unit: 'bottles', reorderPoint: 5, expiryDate: '2026-06-01', status: 'CRITICAL', category: 'Condiments' },
-  { id: 'inv-4', name: 'Lettuce', stock: 25, unit: 'heads', reorderPoint: 15, expiryDate: '2026-02-17', status: 'OK', category: 'Produce' },
-  { id: 'inv-5', name: 'Wagyu Beef', stock: 8, unit: 'kg', reorderPoint: 10, expiryDate: '2026-02-19', status: 'LOW', category: 'Protein' },
-  { id: 'inv-6', name: 'French Fries', stock: 200, unit: 'portions', reorderPoint: 50, expiryDate: '2026-04-15', status: 'OK', category: 'Sides' },
-  { id: 'inv-7', name: 'Lobster Tail', stock: 4, unit: 'pcs', reorderPoint: 8, expiryDate: '2026-02-16', status: 'CRITICAL', category: 'Seafood' },
-  { id: 'inv-8', name: 'Craft Beer', stock: 72, unit: 'bottles', reorderPoint: 24, expiryDate: '2026-08-01', status: 'OK', category: 'Beverages' },
-  { id: 'inv-9', name: 'Matcha Powder', stock: 12, unit: 'bags', reorderPoint: 5, expiryDate: '2026-09-01', status: 'OK', category: 'Beverages' },
-  { id: 'inv-10', name: 'Cheddar Cheese', stock: 6, unit: 'kg', reorderPoint: 8, expiryDate: '2026-02-22', status: 'LOW', category: 'Dairy' },
+  { id: 'inv-1', name: 'Beef Patty', stock: 45, unit: 'pcs', reorderPoint: 50, expiryDate: '2026-02-20', status: 'LOW', category: 'Protein', version: 1 },
+  { id: 'inv-2', name: 'Brioche Bun', stock: 120, unit: 'pcs', reorderPoint: 40, expiryDate: '2026-02-18', status: 'OK', category: 'Bakery', version: 1 },
+  { id: 'inv-3', name: 'Truffle Oil', stock: 3, unit: 'bottles', reorderPoint: 5, expiryDate: '2026-06-01', status: 'CRITICAL', category: 'Condiments', version: 1 },
+  { id: 'inv-4', name: 'Lettuce', stock: 25, unit: 'heads', reorderPoint: 15, expiryDate: '2026-02-17', status: 'OK', category: 'Produce', version: 1 },
+  { id: 'inv-5', name: 'Wagyu Beef', stock: 8, unit: 'kg', reorderPoint: 10, expiryDate: '2026-02-19', status: 'LOW', category: 'Protein', version: 1 },
+  { id: 'inv-6', name: 'French Fries', stock: 200, unit: 'portions', reorderPoint: 50, expiryDate: '2026-04-15', status: 'OK', category: 'Sides', version: 1 },
+  { id: 'inv-7', name: 'Lobster Tail', stock: 4, unit: 'pcs', reorderPoint: 8, expiryDate: '2026-02-16', status: 'CRITICAL', category: 'Seafood', version: 1 },
+  { id: 'inv-8', name: 'Craft Beer', stock: 72, unit: 'bottles', reorderPoint: 24, expiryDate: '2026-08-01', status: 'OK', category: 'Beverages', version: 1 },
+  { id: 'inv-9', name: 'Matcha Powder', stock: 12, unit: 'bags', reorderPoint: 5, expiryDate: '2026-09-01', status: 'OK', category: 'Beverages', version: 1 },
+  { id: 'inv-10', name: 'Cheddar Cheese', stock: 6, unit: 'kg', reorderPoint: 8, expiryDate: '2026-02-22', status: 'LOW', category: 'Dairy', version: 1 },
 ];
 
 export const getSuppliers = (): Supplier[] => [
@@ -162,12 +162,25 @@ export const getPayrollSummary = (): PayrollSummary[] =>
   });
 
 export const getCustomerMenu = (): CustomerMenuItem[] => [
-  { id: 'cm-1', name: 'Truffle Burger', description: 'Premium beef patty with truffle aioli, aged cheddar, and brioche bun', price: 24.90, image: '🍔', category: 'Burgers', popular: true, upsellItems: ['cm-5', 'cm-8'] },
+  {
+    id: 'cm-1', name: 'Truffle Burger', description: 'Premium beef patty with truffle aioli, aged cheddar, and brioche bun', price: 24.90, image: '🍔', category: 'Burgers', popular: true, upsellItems: ['cm-5', 'cm-8'],
+    availableModifiers: [
+      { id: 'mod-1', label: 'No Onions', price: 0 },
+      { id: 'mod-2', label: 'Extra Cheese', price: 2 },
+      { id: 'mod-3', label: 'Add Bacon', price: 3 },
+    ],
+  },
   { id: 'cm-2', name: 'Wagyu Steak', description: 'A5 Wagyu with roasted vegetables and red wine jus', price: 58.00, image: '🥩', category: 'Mains', popular: true },
   { id: 'cm-3', name: 'Lobster Roll', description: 'Fresh lobster in buttered roll with lemon herb mayo', price: 32.00, image: '🦞', category: 'Seafood', popular: true, upsellItems: ['cm-8'] },
   { id: 'cm-4', name: 'Caesar Salad', description: 'Crisp romaine, parmesan, croutons, house-made dressing', price: 14.00, image: '🥗', category: 'Salads' },
   { id: 'cm-5', name: 'Loaded Fries', description: 'Truffle oil, parmesan, herbs', price: 9.50, image: '🍟', category: 'Sides' },
-  { id: 'cm-6', name: 'Fusion Tacos', description: 'Korean BBQ pulled pork with kimchi slaw', price: 16.00, image: '🌮', category: 'Specials', upsellItems: ['cm-8'] },
+  {
+    id: 'cm-6', name: 'Fusion Tacos', description: 'Korean BBQ pulled pork with kimchi slaw', price: 16.00, image: '🌮', category: 'Specials', upsellItems: ['cm-8'],
+    availableModifiers: [
+      { id: 'mod-4', label: 'Extra Spicy', price: 0 },
+      { id: 'mod-5', label: 'Add Avocado', price: 2.50 },
+    ],
+  },
   { id: 'cm-7', name: 'Fish & Chips', description: 'Beer-battered cod with tartar sauce and mushy peas', price: 18.00, image: '🐟', category: 'Mains' },
   { id: 'cm-8', name: 'Craft Beer', description: 'Local IPA on tap', price: 12.00, image: '🍺', category: 'Drinks' },
   { id: 'cm-9', name: 'Matcha Latte', description: 'Organic ceremonial grade matcha', price: 8.50, image: '🍵', category: 'Drinks', popular: true },
@@ -210,3 +223,52 @@ export const getInitialNotifications = (): Notification[] => [
   { id: 'n-2', type: 'alert', title: 'Negative Feedback', message: 'Table 6 rated 2/5 stars. Manager attention needed.', timestamp: new Date(Date.now() - 15 * 60000), read: false },
   { id: 'n-3', type: 'info', title: 'New Reservation', message: 'Party of 8 booked for 7:30 PM tonight', timestamp: new Date(Date.now() - 60 * 60000), read: true },
 ];
+
+export const getMockPurchaseOrders = (): PurchaseOrder[] => [
+  {
+    id: 'po-1',
+    items: [
+      { inventoryId: 'inv-3', name: 'Truffle Oil', quantity: 10, unit: 'bottles' },
+      { inventoryId: 'inv-7', name: 'Lobster Tail', quantity: 20, unit: 'pcs' },
+    ],
+    supplierId: 'sup-2', supplierName: 'Ocean Harvest',
+    status: 'APPROVED', approvedBy: 'Lisa Nguyen',
+    createdAt: new Date(Date.now() - 2 * 86400000), updatedAt: new Date(Date.now() - 86400000),
+  },
+  {
+    id: 'po-2',
+    items: [
+      { inventoryId: 'inv-1', name: 'Beef Patty', quantity: 100, unit: 'pcs' },
+      { inventoryId: 'inv-5', name: 'Wagyu Beef', quantity: 10, unit: 'kg' },
+    ],
+    supplierId: 'sup-4', supplierName: 'Premium Meats Ltd.',
+    status: 'PENDING_APPROVAL',
+    createdAt: new Date(Date.now() - 3600000), updatedAt: new Date(Date.now() - 3600000),
+  },
+];
+
+export const getMockClockRecords = (): ClockRecord[] => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return [
+    {
+      id: 'clk-1', staffId: 'staff-1', staffName: 'Sarah Chen',
+      clockIn: new Date(today.getTime() + 8 * 3600000),
+      clockOut: new Date(today.getTime() + 16 * 3600000),
+      isLate: false, scheduledStart: new Date(today.getTime() + 8 * 3600000),
+      geoVerified: true, hoursWorked: 8,
+    },
+    {
+      id: 'clk-2', staffId: 'staff-4', staffName: 'Deepak Sharma',
+      clockIn: new Date(today.getTime() + 7 * 3600000 + 25 * 60000),
+      isLate: true, scheduledStart: new Date(today.getTime() + 7 * 3600000),
+      geoVerified: true,
+    },
+    {
+      id: 'clk-3', staffId: 'staff-7', staffName: 'Lisa Nguyen',
+      clockIn: new Date(today.getTime() + 9 * 3600000),
+      isLate: false, scheduledStart: new Date(today.getTime() + 9 * 3600000),
+      geoVerified: true,
+    },
+  ];
+};
