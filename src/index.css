@@ -6,82 +6,15 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 240 10% 6%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 6%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 6%;
-    --primary: 347 77% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 93%;
-    --secondary-foreground: 240 6% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 240 5% 93%;
-    --accent-foreground: 240 6% 10%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 347 77% 50%;
     --radius: 0.75rem;
-    --sidebar-background: 240 6% 97%;
-    --sidebar-foreground: 240 4% 16%;
-    --sidebar-primary: 347 77% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 347 77% 96%;
-    --sidebar-accent-foreground: 347 77% 40%;
-    --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 347 77% 50%;
-    --chart-1: 347 77% 50%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 217 91% 60%;
-    --chart-5: 270 67% 58%;
+  }
+
+  .light {
+    /* Theme variables will be set by ThemeProvider */
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 95%;
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 95%;
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 347 77% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 14%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 240 5% 14%;
-    --muted-foreground: 240 4% 55%;
-    --accent: 240 5% 14%;
-    --accent-foreground: 0 0% 95%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 347 77% 50%;
-    --sidebar-background: 240 10% 5%;
-    --sidebar-foreground: 240 4% 75%;
-    --sidebar-primary: 347 77% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 10%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 240 4% 14%;
-    --sidebar-ring: 347 77% 50%;
-    --chart-1: 347 77% 55%;
-    --chart-2: 142 71% 50%;
-    --chart-3: 38 92% 55%;
-    --chart-4: 217 91% 65%;
-    --chart-5: 270 67% 63%;
+    /* Theme variables will be set by ThemeProvider */
   }
 }
 

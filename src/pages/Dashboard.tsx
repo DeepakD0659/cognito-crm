@@ -7,8 +7,9 @@ import { useAppStore } from '@/store/useAppStore';
 import { getKPIData, getSalesData, getMenuItems, getAIRecommendations } from '@/mockData';
 import { getAuditEntries } from '@/lib/auditLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ThemeTest } from '@/components/ui/theme-test';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend
@@ -49,6 +50,9 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Theme Test Component */}
+      <ThemeTest />
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Executive Dashboard</h1>

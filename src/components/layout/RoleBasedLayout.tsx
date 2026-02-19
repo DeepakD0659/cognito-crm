@@ -3,9 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, ChefHat, Utensils, Package, Users, ShoppingCart,
-  Bell, ChevronDown, Menu, X, Brain, Sun, Moon, Monitor,
+  Bell, ChevronDown, Menu, X, Brain, Monitor,
 } from 'lucide-react';
-import { useTheme } from '@/hooks/useTheme';
 import { useAppStore } from '@/store/useAppStore';
 import { branches } from '@/mockData';
 import type { Role } from '@/types';
@@ -16,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 const roleMenus: Record<Role, { label: string; icon: React.ElementType; path: string }[]> = {
   ADMIN: [
@@ -58,7 +58,6 @@ const RoleBasedLayout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
   const menuItems = roleMenus[currentRole];
   const unreadCount = notifications.filter(n => !n.read).length;
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
@@ -136,10 +135,8 @@ const RoleBasedLayout = ({ children }: LayoutProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Theme Toggle */}
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
-          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </Button>
+        {/* Theme Switcher */}
+        <ThemeSwitcher />
 
         {/* Notifications */}
         <Popover>
