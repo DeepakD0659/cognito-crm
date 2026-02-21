@@ -1,0 +1,13 @@
+# Minimal config for Supabase CLI (login, link, db push).
+# See: https://supabase.com/docs/guides/cli/config
+project_id = "cognito-crm"
+
+[db]
+major_version = 15
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]

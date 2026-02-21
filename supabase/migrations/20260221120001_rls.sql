@@ -1,0 +1,30 @@
+-- RLS: anon full access (dev). For production use authenticated policies in rls.sql.
+ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.floor_tables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shift_slots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.menu_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clock_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anon full access branches" ON public.branches FOR ALL USING (true);
+CREATE POLICY "Anon full access suppliers" ON public.suppliers FOR ALL USING (true);
+CREATE POLICY "Anon full access staff" ON public.staff FOR ALL USING (true);
+CREATE POLICY "Anon full access inventory_items" ON public.inventory_items FOR ALL USING (true);
+CREATE POLICY "Anon full access floor_tables" ON public.floor_tables FOR ALL USING (true);
+CREATE POLICY "Anon full access orders" ON public.orders FOR ALL USING (true);
+CREATE POLICY "Anon full access order_items" ON public.order_items FOR ALL USING (true);
+CREATE POLICY "Anon full access shift_slots" ON public.shift_slots FOR ALL USING (true);
+CREATE POLICY "Anon full access notifications" ON public.notifications FOR ALL USING (true);
+CREATE POLICY "Anon full access menu_items" ON public.menu_items FOR ALL USING (true);
+CREATE POLICY "Anon full access purchase_orders" ON public.purchase_orders FOR ALL USING (true);
+CREATE POLICY "Anon full access clock_records" ON public.clock_records FOR ALL USING (true);
+CREATE POLICY "Anon full access payments" ON public.payments FOR ALL USING (true);
+CREATE POLICY "Anon full access feedback" ON public.feedback FOR ALL USING (true);
