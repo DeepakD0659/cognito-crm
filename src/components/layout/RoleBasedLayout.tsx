@@ -5,7 +5,6 @@ import {
   LayoutDashboard, ChefHat, Utensils, Package, Users, ShoppingCart,
   Bell, ChevronDown, Menu, X, Brain, Monitor, LogOut, ContactRound,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { useBranches } from '@/hooks/useSupabaseData';
