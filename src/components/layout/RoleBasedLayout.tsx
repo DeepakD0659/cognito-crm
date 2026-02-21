@@ -3,10 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, ChefHat, Utensils, Package, Users, ShoppingCart,
-  Bell, ChevronDown, Menu, X, Brain, Monitor,
+  Bell, ChevronDown, Menu, X, Brain, Monitor, LogOut, ContactRound,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { useBranches } from '@/hooks/useSupabaseData';
+import { useAuth } from '@/hooks/useAuth';
+import { isSupabaseEnabled } from '@/lib/supabase';
 import type { Role } from '@/types';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -20,6 +24,7 @@ import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 const roleMenus: Record<Role, { label: string; icon: React.ElementType; path: string }[]> = {
   ADMIN: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { label: 'CRM', icon: ContactRound, path: '/crm' },
     { label: 'POS Terminal', icon: Monitor, path: '/pos' },
     { label: 'Operations', icon: Utensils, path: '/operations' },
     { label: 'Kitchen Display', icon: ChefHat, path: '/kds' },
@@ -28,6 +33,7 @@ const roleMenus: Record<Role, { label: string; icon: React.ElementType; path: st
   ],
   MANAGER: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { label: 'CRM', icon: ContactRound, path: '/crm' },
     { label: 'POS Terminal', icon: Monitor, path: '/pos' },
     { label: 'Operations', icon: Utensils, path: '/operations' },
     { label: 'Kitchen Display', icon: ChefHat, path: '/kds' },
@@ -56,12 +62,22 @@ interface LayoutProps {
 const RoleBasedLayout = ({ children }: LayoutProps) => {
   const branches = useBranches();
   const { currentRole, setRole, selectedBranch, setBranch, notifications, markNotificationRead, cart } = useAppStore();
+  const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuItems = roleMenus[currentRole];
   const unreadCount = notifications.filter(n => !n.read).length;
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
+
+  // Flow 8: Check User Permissions – sync role from user_profiles when Supabase Auth is enabled
+  useEffect(() => {
+    if (!isSupabaseEnabled || !profile?.role) return;
+    const r = profile.role.toUpperCase();
+    if (r === 'ADMIN' || r === 'MANAGER' || r === 'KITCHEN' || r === 'CUSTOMER') {
+      setRole(r as Role);
+    }
+  }, [profile?.role, setRole]);
 
   // Customer gets a different layout
   if (currentRole === 'CUSTOMER' || location.pathname === '/customer') {
@@ -173,10 +189,32 @@ const RoleBasedLayout = ({ children }: LayoutProps) => {
           </PopoverContent>
         </Popover>
 
-        {/* User Avatar */}
-        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
-          MH
-        </div>
+        {/* User / Sign out (Flow 8: End Session) */}
+        {isSupabaseEnabled && user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 bg-primary/20 text-primary text-xs font-bold">
+                {(user.email?.[0] ?? 'U').toUpperCase()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => { void signOut().then(() => navigate('/login')); }}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : isSupabaseEnabled ? (
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/login">Sign in</Link>
+          </Button>
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
+            MH
+          </div>
+        )}
       </header>
 
       <div className="flex flex-1 min-h-0">

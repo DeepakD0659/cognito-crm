@@ -213,6 +213,149 @@ export interface Feedback {
   timestamp: Date;
 }
 
+// === CRM types (11-flow implementation) ===
+
+export type LeadStatus = 'new' | 'nurture' | 'qualified' | 'closed_won' | 'closed_lost';
+export type LeadStage = 'discovery' | 'proposal' | 'negotiation';
+export type OpportunityStage = 'pipeline' | 'negotiation' | 'closed_won' | 'closed_lost';
+export type InquiryStatus = 'new' | 'assigned' | 'qualified' | 'closed';
+export type SupportTicketStatus = 'open' | 'diagnosing' | 'resolved';
+export type ProjectStatus = 'planning' | 'executing' | 'completed';
+export type FeatureRequestStatus = 'backlog' | 'approved' | 'in_progress' | 'deployed' | 'archived';
+export type MarketingAssetStatus = 'draft' | 'review' | 'published';
+
+export interface Contact {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  source: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Lead {
+  id: string;
+  contactId: string;
+  score: number;
+  status: LeadStatus;
+  assignedTo?: string;
+  stage?: LeadStage;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Opportunity {
+  id: string;
+  leadId: string;
+  stage: OpportunityStage;
+  value: number;
+  closedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Inquiry {
+  id: string;
+  contactId?: string;
+  details: string;
+  hotLead: boolean;
+  assignedTo?: string;
+  status: InquiryStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface KbArticle {
+  id: string;
+  title: string;
+  content: string;
+  keywords: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SupportTicket {
+  id: string;
+  contactId?: string;
+  userId?: string;
+  subject: string;
+  description: string;
+  assignedTo?: string;
+  status: SupportTicketStatus;
+  knownIssue: boolean;
+  kbArticleId?: string;
+  resolvedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Campaign {
+  id: string;
+  name: string;
+  launchedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CampaignLead {
+  id: string;
+  campaignId: string;
+  leadId: string;
+  criteriaMet: boolean;
+  createdAt: Date;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  scope?: string;
+  status: ProjectStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProjectMilestone {
+  id: string;
+  projectId: string;
+  name: string;
+  reachedAt?: Date;
+  approved: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FeatureRequest {
+  id: string;
+  title: string;
+  requirements?: string;
+  priority: number;
+  approvedForDev: boolean;
+  status: FeatureRequestStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MarketingAsset {
+  id: string;
+  title: string;
+  content?: string;
+  status: MarketingAssetStatus;
+  legalApproved: boolean;
+  publishedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserProfile {
+  id: string;
+  role: string;
+  permissions: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface AppState {
   currentRole: Role;
   selectedBranch: BranchId;

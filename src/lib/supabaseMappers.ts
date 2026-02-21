@@ -15,6 +15,19 @@ import type {
   ClockRecord,
   Payment,
   ItemModifier,
+  Contact,
+  Lead,
+  Opportunity,
+  Inquiry,
+  KbArticle,
+  SupportTicket,
+  Campaign,
+  CampaignLead,
+  Project,
+  ProjectMilestone,
+  FeatureRequest,
+  MarketingAsset,
+  UserProfile,
 } from '@/types';
 
 function parseDate(v: string | null | undefined): Date {
@@ -259,5 +272,310 @@ export function notificationToRow(n: Notification): Record<string, unknown> {
     title: n.title,
     message: n.message,
     read: n.read,
+  };
+}
+
+// --- CRM: map from DB (snake_case -> camelCase) ---
+export function mapContact(row: Record<string, unknown>): Contact {
+  return {
+    id: (row.id as string) ?? '',
+    name: (row.name as string) ?? '',
+    email: (row.email as string) ?? undefined,
+    phone: (row.phone as string) ?? undefined,
+    company: (row.company as string) ?? undefined,
+    source: (row.source as string) ?? 'sales',
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapLead(row: Record<string, unknown>): Lead {
+  return {
+    id: (row.id as string) ?? '',
+    contactId: (row.contact_id as string) ?? '',
+    score: Number(row.score) ?? 0,
+    status: ((row.status as string) ?? 'new') as Lead['status'],
+    assignedTo: (row.assigned_to as string) ?? undefined,
+    stage: (row.stage as string) as Lead['stage'] | undefined,
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapOpportunity(row: Record<string, unknown>): Opportunity {
+  return {
+    id: (row.id as string) ?? '',
+    leadId: (row.lead_id as string) ?? '',
+    stage: ((row.stage as string) ?? 'pipeline') as Opportunity['stage'],
+    value: Number(row.value) ?? 0,
+    closedAt: row.closed_at ? parseDate(row.closed_at as string) : undefined,
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapInquiry(row: Record<string, unknown>): Inquiry {
+  return {
+    id: (row.id as string) ?? '',
+    contactId: (row.contact_id as string) ?? undefined,
+    details: (row.details as string) ?? '',
+    hotLead: Boolean(row.hot_lead),
+    assignedTo: (row.assigned_to as string) ?? undefined,
+    status: ((row.status as string) ?? 'new') as Inquiry['status'],
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapKbArticle(row: Record<string, unknown>): KbArticle {
+  return {
+    id: (row.id as string) ?? '',
+    title: (row.title as string) ?? '',
+    content: (row.content as string) ?? '',
+    keywords: Array.isArray(row.keywords) ? (row.keywords as string[]) : [],
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapSupportTicket(row: Record<string, unknown>): SupportTicket {
+  return {
+    id: (row.id as string) ?? '',
+    contactId: (row.contact_id as string) ?? undefined,
+    userId: (row.user_id as string) ?? undefined,
+    subject: (row.subject as string) ?? '',
+    description: (row.description as string) ?? '',
+    assignedTo: (row.assigned_to as string) ?? undefined,
+    status: ((row.status as string) ?? 'open') as SupportTicket['status'],
+    knownIssue: Boolean(row.known_issue),
+    kbArticleId: (row.kb_article_id as string) ?? undefined,
+    resolvedAt: row.resolved_at ? parseDate(row.resolved_at as string) : undefined,
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapCampaign(row: Record<string, unknown>): Campaign {
+  return {
+    id: (row.id as string) ?? '',
+    name: (row.name as string) ?? '',
+    launchedAt: row.launched_at ? parseDate(row.launched_at as string) : undefined,
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapCampaignLead(row: Record<string, unknown>): CampaignLead {
+  return {
+    id: (row.id as string) ?? '',
+    campaignId: (row.campaign_id as string) ?? '',
+    leadId: (row.lead_id as string) ?? '',
+    criteriaMet: Boolean(row.criteria_met),
+    createdAt: parseDate(row.created_at as string),
+  };
+}
+
+export function mapProject(row: Record<string, unknown>): Project {
+  return {
+    id: (row.id as string) ?? '',
+    name: (row.name as string) ?? '',
+    scope: (row.scope as string) ?? undefined,
+    status: ((row.status as string) ?? 'planning') as Project['status'],
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapProjectMilestone(row: Record<string, unknown>): ProjectMilestone {
+  return {
+    id: (row.id as string) ?? '',
+    projectId: (row.project_id as string) ?? '',
+    name: (row.name as string) ?? '',
+    reachedAt: row.reached_at ? parseDate(row.reached_at as string) : undefined,
+    approved: Boolean(row.approved),
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapFeatureRequest(row: Record<string, unknown>): FeatureRequest {
+  return {
+    id: (row.id as string) ?? '',
+    title: (row.title as string) ?? '',
+    requirements: (row.requirements as string) ?? undefined,
+    priority: Number(row.priority) ?? 0,
+    approvedForDev: Boolean(row.approved_for_dev),
+    status: ((row.status as string) ?? 'backlog') as FeatureRequest['status'],
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapMarketingAsset(row: Record<string, unknown>): MarketingAsset {
+  return {
+    id: (row.id as string) ?? '',
+    title: (row.title as string) ?? '',
+    content: (row.content as string) ?? undefined,
+    status: ((row.status as string) ?? 'draft') as MarketingAsset['status'],
+    legalApproved: Boolean(row.legal_approved),
+    publishedAt: row.published_at ? parseDate(row.published_at as string) : undefined,
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+export function mapUserProfile(row: Record<string, unknown>): UserProfile {
+  return {
+    id: (row.id as string) ?? '',
+    role: (row.role as string) ?? 'CUSTOMER',
+    permissions: (row.permissions as Record<string, unknown>) ?? {},
+    createdAt: parseDate(row.created_at as string),
+    updatedAt: parseDate(row.updated_at as string),
+  };
+}
+
+// --- CRM: to DB (camelCase -> snake_case) ---
+export function contactToRow(c: Contact): Record<string, unknown> {
+  return {
+    id: c.id,
+    name: c.name,
+    email: c.email ?? null,
+    phone: c.phone ?? null,
+    company: c.company ?? null,
+    source: c.source,
+    updated_at: c.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function leadToRow(l: Lead): Record<string, unknown> {
+  return {
+    id: l.id,
+    contact_id: l.contactId,
+    score: l.score,
+    status: l.status,
+    assigned_to: l.assignedTo ?? null,
+    stage: l.stage ?? null,
+    updated_at: l.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function opportunityToRow(o: Opportunity): Record<string, unknown> {
+  return {
+    id: o.id,
+    lead_id: o.leadId,
+    stage: o.stage,
+    value: o.value,
+    closed_at: o.closedAt?.toISOString?.() ?? null,
+    updated_at: o.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function inquiryToRow(i: Inquiry): Record<string, unknown> {
+  return {
+    id: i.id,
+    contact_id: i.contactId ?? null,
+    details: i.details,
+    hot_lead: i.hotLead,
+    assigned_to: i.assignedTo ?? null,
+    status: i.status,
+    updated_at: i.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function kbArticleToRow(k: KbArticle): Record<string, unknown> {
+  return {
+    id: k.id,
+    title: k.title,
+    content: k.content,
+    keywords: k.keywords ?? [],
+    updated_at: k.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function supportTicketToRow(t: SupportTicket): Record<string, unknown> {
+  return {
+    id: t.id,
+    contact_id: t.contactId ?? null,
+    user_id: t.userId ?? null,
+    subject: t.subject,
+    description: t.description,
+    assigned_to: t.assignedTo ?? null,
+    status: t.status,
+    known_issue: t.knownIssue,
+    kb_article_id: t.kbArticleId ?? null,
+    resolved_at: t.resolvedAt?.toISOString?.() ?? null,
+    updated_at: t.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function campaignToRow(c: Campaign): Record<string, unknown> {
+  return {
+    id: c.id,
+    name: c.name,
+    launched_at: c.launchedAt?.toISOString?.() ?? null,
+    updated_at: c.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function campaignLeadToRow(cl: CampaignLead): Record<string, unknown> {
+  return {
+    id: cl.id,
+    campaign_id: cl.campaignId,
+    lead_id: cl.leadId,
+    criteria_met: cl.criteriaMet,
+  };
+}
+
+export function projectToRow(p: Project): Record<string, unknown> {
+  return {
+    id: p.id,
+    name: p.name,
+    scope: p.scope ?? null,
+    status: p.status,
+    updated_at: p.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function projectMilestoneToRow(pm: ProjectMilestone): Record<string, unknown> {
+  return {
+    id: pm.id,
+    project_id: pm.projectId,
+    name: pm.name,
+    reached_at: pm.reachedAt?.toISOString?.() ?? null,
+    approved: pm.approved,
+    updated_at: pm.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function featureRequestToRow(f: FeatureRequest): Record<string, unknown> {
+  return {
+    id: f.id,
+    title: f.title,
+    requirements: f.requirements ?? null,
+    priority: f.priority,
+    approved_for_dev: f.approvedForDev,
+    status: f.status,
+    updated_at: f.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function marketingAssetToRow(m: MarketingAsset): Record<string, unknown> {
+  return {
+    id: m.id,
+    title: m.title,
+    content: m.content ?? null,
+    status: m.status,
+    legal_approved: m.legalApproved,
+    published_at: m.publishedAt?.toISOString?.() ?? null,
+    updated_at: m.updatedAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
+export function userProfileToRow(u: UserProfile): Record<string, unknown> {
+  return {
+    id: u.id,
+    role: u.role,
+    permissions: u.permissions ?? {},
+    updated_at: u.updatedAt?.toISOString?.() ?? new Date().toISOString(),
   };
 }
