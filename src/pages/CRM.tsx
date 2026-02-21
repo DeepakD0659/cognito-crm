@@ -5,6 +5,8 @@ import {
   Plus, Loader2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +25,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   fetchContacts,
@@ -38,6 +39,18 @@ import {
   fetchMarketingAssets,
 } from '@/lib/supabaseData';
 import {
+  getMockContacts,
+  getMockLeads,
+  getMockOpportunities,
+  getMockInquiries,
+  getMockSupportTickets,
+  getMockKbArticles,
+  getMockCampaigns,
+  getMockProjects,
+  getMockFeatureRequests,
+  getMockMarketingAssets,
+} from '@/mockData';
+import {
   insertContact,
   insertLead,
   insertInquiry,
@@ -51,73 +64,93 @@ import {
 } from '@/lib/supabaseWrites';
 import type { Contact, Lead, Inquiry, SupportTicket, KbArticle, Campaign, Project, FeatureRequest, MarketingAsset } from '@/types';
 
+const CRM_MOCK_KEY = 'crm-fill-with-mock';
+
 const CRM = () => {
   const queryClient = useQueryClient();
   const [addDialog, setAddDialog] = useState<string | null>(null);
+  const [fillWithMock, setFillWithMock] = useState(() => {
+    try {
+      return localStorage.getItem(CRM_MOCK_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const useMock = fillWithMock;
+  const canShowCrm = isSupabaseEnabled || useMock;
+
+  const toggleMock = (checked: boolean) => {
+    setFillWithMock(checked);
+    try {
+      localStorage.setItem(CRM_MOCK_KEY, String(checked));
+    } catch {}
+    queryClient.invalidateQueries({ queryKey: ['crm'] });
+  };
 
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
-    queryKey: ['crm', 'contacts'],
-    queryFn: fetchContacts,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'contacts', useMock],
+    queryFn: useMock ? async () => getMockContacts() : fetchContacts,
+    enabled: canShowCrm,
   });
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
-    queryKey: ['crm', 'leads'],
-    queryFn: fetchLeads,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'leads', useMock],
+    queryFn: useMock ? async () => getMockLeads() : fetchLeads,
+    enabled: canShowCrm,
   });
   const { data: opportunities = [] } = useQuery({
-    queryKey: ['crm', 'opportunities'],
-    queryFn: fetchOpportunities,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'opportunities', useMock],
+    queryFn: useMock ? async () => getMockOpportunities() : fetchOpportunities,
+    enabled: canShowCrm,
   });
   const { data: inquiries = [] } = useQuery({
-    queryKey: ['crm', 'inquiries'],
-    queryFn: fetchInquiries,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'inquiries', useMock],
+    queryFn: useMock ? async () => getMockInquiries() : fetchInquiries,
+    enabled: canShowCrm,
   });
   const { data: tickets = [] } = useQuery({
-    queryKey: ['crm', 'support_tickets'],
-    queryFn: fetchSupportTickets,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'support_tickets', useMock],
+    queryFn: useMock ? async () => getMockSupportTickets() : fetchSupportTickets,
+    enabled: canShowCrm,
   });
   const { data: kbArticles = [] } = useQuery({
-    queryKey: ['crm', 'kb_articles'],
-    queryFn: fetchKbArticles,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'kb_articles', useMock],
+    queryFn: useMock ? async () => getMockKbArticles() : fetchKbArticles,
+    enabled: canShowCrm,
   });
   const { data: campaigns = [] } = useQuery({
-    queryKey: ['crm', 'campaigns'],
-    queryFn: fetchCampaigns,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'campaigns', useMock],
+    queryFn: useMock ? async () => getMockCampaigns() : fetchCampaigns,
+    enabled: canShowCrm,
   });
   const { data: projects = [] } = useQuery({
-    queryKey: ['crm', 'projects'],
-    queryFn: fetchProjects,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'projects', useMock],
+    queryFn: useMock ? async () => getMockProjects() : fetchProjects,
+    enabled: canShowCrm,
   });
   const { data: featureRequests = [] } = useQuery({
-    queryKey: ['crm', 'feature_requests'],
-    queryFn: fetchFeatureRequests,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'feature_requests', useMock],
+    queryFn: useMock ? async () => getMockFeatureRequests() : fetchFeatureRequests,
+    enabled: canShowCrm,
   });
   const { data: marketingAssets = [] } = useQuery({
-    queryKey: ['crm', 'marketing_assets'],
-    queryFn: fetchMarketingAssets,
-    enabled: isSupabaseEnabled,
+    queryKey: ['crm', 'marketing_assets', useMock],
+    queryFn: useMock ? async () => getMockMarketingAssets() : fetchMarketingAssets,
+    enabled: canShowCrm,
   });
 
   const refetch = () => {
     queryClient.invalidateQueries({ queryKey: ['crm'] });
   };
 
-  if (!isSupabaseEnabled) {
+  if (!canShowCrm) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>CRM</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Enable Supabase to use CRM (contacts, leads, opportunities, support, campaigns, projects, feature requests, marketing).</p>
+          <p className="text-muted-foreground">Enable Supabase or turn on &quot;Fill with mock&quot; to use CRM (contacts, leads, opportunities, support, campaigns, projects, feature requests, marketing).</p>
         </CardContent>
       </Card>
     );
@@ -125,9 +158,21 @@ const CRM = () => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">CRM</h1>
-        <p className="text-muted-foreground text-sm">Flows 1–11: Contacts, Leads, Opportunities, Inquiries, Support, Campaigns, Projects, Feature Requests, Marketing</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">CRM</h1>
+          <p className="text-muted-foreground text-sm">Flows 1–11: Contacts, Leads, Opportunities, Inquiries, Support, Campaigns, Projects, Feature Requests, Marketing</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="crm-mock-toggle"
+            checked={fillWithMock}
+            onCheckedChange={toggleMock}
+          />
+          <Label htmlFor="crm-mock-toggle" className="text-sm cursor-pointer whitespace-nowrap">
+            Fill with mock
+          </Label>
+        </div>
       </div>
       <Tabs defaultValue="contacts" className="w-full">
         <TabsList className="flex flex-wrap gap-1 h-auto">

@@ -1,4 +1,4 @@
-import type { Branch, InventoryItem, Order, FloorTable, Staff, Supplier, SalesDataPoint, MenuItemSales, KPIData, CustomerMenuItem, PayrollSummary, ShiftSlot, LoyaltyInfo, AIRecommendation, Notification, BranchId, PurchaseOrder, ClockRecord, Payment } from './types';
+import type { Branch, InventoryItem, Order, FloorTable, Staff, Supplier, SalesDataPoint, MenuItemSales, KPIData, CustomerMenuItem, PayrollSummary, ShiftSlot, LoyaltyInfo, AIRecommendation, Notification, BranchId, PurchaseOrder, ClockRecord, Payment, Contact, Lead, Opportunity, Inquiry, KbArticle, SupportTicket, Campaign, Project, FeatureRequest, MarketingAsset } from './types';
 
 export const branches: Branch[] = [
   { id: 'branch-a', name: 'Downtown Flagship', performanceScore: 92 },
@@ -272,3 +272,57 @@ export const getMockClockRecords = (): ClockRecord[] => {
     },
   ];
 };
+
+// --- CRM mock data (for "Fill with mock" toggle) ---
+const now = new Date();
+const past = new Date(now.getTime() - 7 * 24 * 3600000);
+
+export const getMockContacts = (): Contact[] => [
+  { id: 'mock-c1', name: 'Jane Doe', email: 'jane@acme.com', phone: '+1-555-0101', company: 'Acme Corp', source: 'sales', createdAt: past, updatedAt: now },
+  { id: 'mock-c2', name: 'John Smith', email: 'john@startup.io', phone: '+1-555-0102', company: 'Startup IO', source: 'inquiry', createdAt: past, updatedAt: now },
+  { id: 'mock-c3', name: 'Alice Lee', email: 'alice@bigco.com', company: 'BigCo', source: 'campaign', createdAt: past, updatedAt: now },
+];
+
+export const getMockLeads = (): Lead[] => [
+  { id: 'mock-l1', contactId: 'mock-c1', score: 85, status: 'qualified', stage: 'proposal', createdAt: past, updatedAt: now },
+  { id: 'mock-l2', contactId: 'mock-c2', score: 45, status: 'nurture', createdAt: past, updatedAt: now },
+];
+
+export const getMockOpportunities = (): Opportunity[] => [
+  { id: 'mock-o1', leadId: 'mock-l1', stage: 'negotiation', value: 12000, createdAt: past, updatedAt: now },
+];
+
+export const getMockInquiries = (): Inquiry[] => [
+  { id: 'mock-i1', contactId: 'mock-c1', details: 'Interested in enterprise plan and SLA', hotLead: true, status: 'assigned', createdAt: past, updatedAt: now },
+  { id: 'mock-i2', contactId: 'mock-c2', details: 'General pricing question', hotLead: false, status: 'new', createdAt: past, updatedAt: now },
+];
+
+export const getMockKbArticles = (): KbArticle[] => [
+  { id: 'mock-k1', title: 'Login timeout', content: 'Clear cookies and cache; ensure 2FA is not blocking. Retry after 5 min.', keywords: ['login', 'timeout', '2fa'], createdAt: past, updatedAt: now },
+  { id: 'mock-k2', title: 'Export fails', content: 'Check file size limit (max 10k rows). Use date filter and export in chunks.', keywords: ['export', 'limit', 'csv'], createdAt: past, updatedAt: now },
+];
+
+export const getMockSupportTickets = (): SupportTicket[] => [
+  { id: 'mock-t1', contactId: 'mock-c1', subject: 'Cannot log in', description: 'Session expires after 1 minute', status: 'open', knownIssue: true, kbArticleId: 'mock-k1', createdAt: past, updatedAt: now },
+  { id: 'mock-t2', contactId: 'mock-c2', subject: 'Dashboard slow', description: 'Takes 30s to load', status: 'diagnosing', knownIssue: false, createdAt: past, updatedAt: now },
+];
+
+export const getMockCampaigns = (): Campaign[] => [
+  { id: 'mock-ca1', name: 'Q1 Enterprise Push', launchedAt: past, createdAt: past, updatedAt: now },
+  { id: 'mock-ca2', name: 'Webinar Follow-up', createdAt: past, updatedAt: now },
+];
+
+export const getMockProjects = (): Project[] => [
+  { id: 'mock-p1', name: 'Website Redesign', scope: 'New homepage and checkout', status: 'executing', createdAt: past, updatedAt: now },
+  { id: 'mock-p2', name: 'API v2', scope: 'REST + webhooks', status: 'planning', createdAt: past, updatedAt: now },
+];
+
+export const getMockFeatureRequests = (): FeatureRequest[] => [
+  { id: 'mock-f1', title: 'Dark mode', requirements: 'System theme + manual toggle', priority: 2, approvedForDev: true, status: 'in_progress', createdAt: past, updatedAt: now },
+  { id: 'mock-f2', title: 'Bulk export', requirements: 'CSV/Excel for all entities', priority: 1, approvedForDev: false, status: 'backlog', createdAt: past, updatedAt: now },
+];
+
+export const getMockMarketingAssets = (): MarketingAsset[] => [
+  { id: 'mock-m1', title: 'Blog: Why choose us', content: 'Draft intro and 3 sections...', status: 'review', legalApproved: false, createdAt: past, updatedAt: now },
+  { id: 'mock-m2', title: 'Landing page hero', content: 'Headline and CTA copy', status: 'published', legalApproved: true, publishedAt: past, createdAt: past, updatedAt: now },
+];
