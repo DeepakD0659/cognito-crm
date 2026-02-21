@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Plus, Minus, Star, ArrowLeft, Send, X, CreditCard, Banknote, Smartphone, LogIn, Tag } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
-import { getCustomerMenu, getLoyaltyInfo } from '@/mockData';
+import { useCustomerMenu } from '@/hooks/useSupabaseData';
+import { getLoyaltyInfo } from '@/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +18,7 @@ import type { CustomerMenuItem, OrderItem, PaymentMethod, ItemModifier } from '@
 
 const Customer = () => {
   const { cart, addToCart, removeFromCart, clearCart, addOrder, addNotification, submitFeedback } = useAppStore();
-  const menu = getCustomerMenu();
+  const menu = useCustomerMenu();
   const loyalty = getLoyaltyInfo();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [upsellItem, setUpsellItem] = useState<CustomerMenuItem | null>(null);

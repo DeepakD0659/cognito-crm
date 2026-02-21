@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/themes";
 import RoleBasedLayout from "./components/layout/RoleBasedLayout";
+import SupabaseSync from "./components/SupabaseSync";
 import Dashboard from "./pages/Dashboard";
 import Operations from "./pages/Operations";
 import KDS from "./pages/KDS";
@@ -23,6 +24,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <SupabaseSync />
           <RoleBasedLayout>
             <Routes>
               <Route path="/" element={<Dashboard />} />

@@ -237,7 +237,7 @@ export interface AppState {
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   removeOrder: (orderId: string) => void;
   deductInventory: (items: OrderItem[]) => void;
-  updateTableStatus: (tableId: number, status: TableStatus, orderId?: string) => void;
+  updateTableStatus: (tableId: number, status: TableStatus, orderId?: string, waiter?: string) => void;
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markNotificationRead: (id: string) => void;
   addToCart: (item: CustomerMenuItem) => void;
@@ -257,4 +257,12 @@ export interface AppState {
   clockIn: (record: Omit<ClockRecord, 'id'>) => void;
   clockOut: (recordId: string) => void;
   submitFeedback: (feedback: Omit<Feedback, 'id' | 'timestamp'>) => void;
+
+  // Supabase sync: replace slices from real-time (no extra reads)
+  hydrateInventory: (items: InventoryItem[]) => void;
+  hydrateActiveOrders: (orders: Order[]) => void;
+  hydrateFloorTables: (tables: FloorTable[]) => void;
+  hydrateNotifications: (notifications: Notification[]) => void;
+  hydratePurchaseOrders: (list: PurchaseOrder[]) => void;
+  hydrateClockRecords: (list: ClockRecord[]) => void;
 }

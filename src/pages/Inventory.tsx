@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Package, AlertTriangle, Plus, Check, Search, FileText, Truck, ShieldCheck } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
-import { getSuppliers } from '@/mockData';
+import { useSuppliers } from '@/hooks/useSupabaseData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,13 +26,13 @@ const poStatusColors: Record<string, string> = {
 
 const Inventory = () => {
   const { inventory, restockItem, purchaseOrders, approvePO, receivePO, createPO } = useAppStore();
+  const suppliers = useSuppliers();
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<string>('');
   const [approvalChecked, setApprovalChecked] = useState(false);
   const { toast } = useToast();
-  const suppliers = getSuppliers();
 
   const filtered = inventory.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
   const lowStockItems = inventory.filter(i => i.status !== 'OK');

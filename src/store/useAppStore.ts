@@ -3,6 +3,7 @@ import type { AppState, Order, OrderItem, TableStatus, BranchId, Role, CustomerM
 import { getInventory, getActiveOrders, getFloorTables, getInitialNotifications, getMockPurchaseOrders, getMockClockRecords } from '../mockData';
 import { eventBus } from '../lib/eventBus';
 import { logAudit } from '../lib/auditLog';
+import * as supabaseWrites from '../lib/supabaseWrites';
 
 export const useAppStore = create<AppState>((set, get) => ({
   currentRole: 'ADMIN' as Role,
@@ -29,7 +30,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     set({ activeOrders: [...state.activeOrders, order] });
     state.deductInventory(order.items);
-    state.updateTableStatus(order.tableId, 'occupied', order.id);
+    state.updateTableStatus(order.tableId, 'occupied', order.id, order.waiter);
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.insertOrder(order);
+    }
     eventBus.emit('ORDER_PLACED', {
       orderId: order.id,
       tableId: order.tableId,
@@ -47,6 +51,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         o.id === orderId ? { ...o, status } : o
       ),
     }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.updateOrderStatus(orderId, status, order?.locked);
+    }
     if (prevStatus) {
       eventBus.emit('ORDER_STATUS_CHANGED', { orderId, from: prevStatus, to: status });
     }
@@ -60,8 +67,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   removeOrder: (orderId: string) => {
+    const order = get().activeOrders.find(o => o.id === orderId);
     set(state => {
-      const order = state.activeOrders.find(o => o.id === orderId);
       const newTables = order
         ? state.floorTables.map(t => t.id === order.tableId ? { ...t, status: 'vacant' as TableStatus, orderId: undefined, waiter: undefined, occupiedSince: undefined } : t)
         : state.floorTables;
@@ -70,6 +77,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         floorTables: newTables,
       };
     });
+    if (supabaseWrites.isSupabaseEnabled && order) {
+      void supabaseWrites.deleteOrder(orderId);
+      void supabaseWrites.updateFloorTableStatus(order.tableId, 'vacant');
+    }
   },
 
   deductInventory: (items: OrderItem[]) => {
@@ -87,30 +98,49 @@ export const useAppStore = create<AppState>((set, get) => ({
         };
       }),
     }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      get().inventory.forEach(inv => void supabaseWrites.upsertInventoryItem(inv));
+    }
   },
 
-  updateTableStatus: (tableId: number, status: TableStatus, orderId?: string) => {
+  updateTableStatus: (tableId: number, status: TableStatus, orderId?: string, waiter?: string) => {
     set(state => ({
       floorTables: state.floorTables.map(t =>
-        t.id === tableId ? { ...t, status, orderId, occupiedSince: status === 'occupied' ? new Date() : undefined } : t
+        t.id === tableId
+          ? { ...t, status, orderId, waiter: waiter ?? t.waiter, occupiedSince: status === 'occupied' ? new Date() : undefined }
+          : t
       ),
     }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      const table = get().floorTables.find(t => t.id === tableId);
+      if (table) {
+        void supabaseWrites.updateFloorTableStatus(
+          tableId,
+          table.status,
+          table.orderId,
+          table.waiter,
+          table.occupiedSince
+        );
+      }
+    }
     eventBus.emit('TABLE_STATUS_CHANGED', { tableId, from: '', to: status });
   },
 
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    set(state => ({
-      notifications: [
-        { ...notification, id: `n-${Date.now()}`, timestamp: new Date(), read: false },
-        ...state.notifications,
-      ],
-    }));
+    const n = { ...notification, id: `n-${Date.now()}`, timestamp: new Date(), read: false };
+    set(state => ({ notifications: [n, ...state.notifications] }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.insertNotification(n);
+    }
   },
 
   markNotificationRead: (id: string) => {
     set(state => ({
       notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n),
     }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.updateNotificationRead(id, true);
+    }
   },
 
   addToCart: (item: CustomerMenuItem) => {
@@ -145,6 +175,10 @@ export const useAppStore = create<AppState>((set, get) => ({
           : inv
       ),
     }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      const inv = get().inventory.find(i => i.id === itemId);
+      if (inv) void supabaseWrites.upsertInventoryItem(inv);
+    }
   },
 
   // === New actions ===
@@ -196,9 +230,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   createPO: (po) => {
     const id = `po-${Date.now()}`;
     const now = new Date();
-    set(state => ({
-      purchaseOrders: [...state.purchaseOrders, { ...po, id, createdAt: now, updatedAt: now }],
-    }));
+    const full = { ...po, id, createdAt: now, updatedAt: now };
+    set(state => ({ purchaseOrders: [...state.purchaseOrders, full] }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.insertPurchaseOrder(full);
+    }
     logAudit({ flowId: 'procurement', action: 'PO_CREATED', actor: 'system', metadata: { poId: id } });
   },
 
@@ -208,6 +244,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         po.id === poId ? { ...po, status: 'APPROVED', approvedBy: approver, updatedAt: new Date() } : po
       ),
     }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.updatePurchaseOrderStatus(poId, 'APPROVED', { approvedBy: approver });
+    }
     logAudit({ flowId: 'procurement', action: 'PO_APPROVED', actor: approver, metadata: { poId } });
   },
 
@@ -222,8 +261,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         p.id === poId ? { ...p, status: 'RECEIVED', grnNumber, updatedAt: new Date() } : p
       ),
     }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.updatePurchaseOrderStatus(poId, 'RECEIVED', { grnNumber });
+    }
 
-    // Update inventory from PO items
     po.items.forEach(item => {
       state.restockItem(item.inventoryId, item.quantity);
     });
@@ -233,7 +274,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   clockIn: (record) => {
     const id = `clk-${Date.now()}`;
-    set(state => ({ clockRecords: [...state.clockRecords, { ...record, id }] }));
+    const full = { ...record, id };
+    set(state => ({ clockRecords: [...state.clockRecords, full] }));
+    if (supabaseWrites.isSupabaseEnabled) {
+      void supabaseWrites.insertClockRecord(full);
+    }
     if (record.isLate) {
       get().addNotification({
         type: 'warning',
@@ -246,14 +291,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   clockOut: (recordId: string) => {
-    set(state => ({
-      clockRecords: state.clockRecords.map(r => {
-        if (r.id !== recordId) return r;
-        const clockOut = new Date();
-        const hoursWorked = (clockOut.getTime() - r.clockIn.getTime()) / 3600000;
-        return { ...r, clockOut, hoursWorked: Math.round(hoursWorked * 100) / 100 };
-      }),
-    }));
+    set(state => {
+      const r = state.clockRecords.find(rec => rec.id === recordId);
+      if (!r) return state;
+      const clockOut = new Date();
+      const hoursWorked = Math.round((clockOut.getTime() - r.clockIn.getTime()) / 3600000 * 100) / 100;
+      if (supabaseWrites.isSupabaseEnabled) {
+        void supabaseWrites.updateClockRecordOut(recordId, clockOut, hoursWorked);
+      }
+      return {
+        clockRecords: state.clockRecords.map(rec =>
+          rec.id !== recordId ? rec : { ...rec, clockOut, hoursWorked }
+        ),
+      };
+    });
     logAudit({ flowId: 'hr', action: 'CLOCK_OUT', actor: 'system', metadata: { recordId } });
   },
 
@@ -274,4 +325,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     logAudit({ flowId: 'feedback', action: 'FEEDBACK_SUBMITTED', actor: 'customer', metadata: { rating: feedback.rating } });
   },
+
+  hydrateInventory: (items) => set({ inventory: items }),
+  hydrateActiveOrders: (orders) => set({ activeOrders: orders }),
+  hydrateFloorTables: (tables) => set({ floorTables: tables }),
+  hydrateNotifications: (notifications) => set({ notifications }),
+  hydratePurchaseOrders: (list) => set({ purchaseOrders: list }),
+  hydrateClockRecords: (list) => set({ clockRecords: list }),
 }));

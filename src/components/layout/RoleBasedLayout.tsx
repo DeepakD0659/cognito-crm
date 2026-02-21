@@ -6,7 +6,7 @@ import {
   Bell, ChevronDown, Menu, X, Brain, Monitor,
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
-import { branches } from '@/mockData';
+import { useBranches } from '@/hooks/useSupabaseData';
 import type { Role } from '@/types';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -54,6 +54,7 @@ interface LayoutProps {
 }
 
 const RoleBasedLayout = ({ children }: LayoutProps) => {
+  const branches = useBranches();
   const { currentRole, setRole, selectedBranch, setBranch, notifications, markNotificationRead, cart } = useAppStore();
   const location = useLocation();
   const navigate = useNavigate();

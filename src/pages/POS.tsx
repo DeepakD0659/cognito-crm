@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Monitor, Users as UsersIcon, ChefHat, AlertTriangle, Send, Minus, Plus } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
-import { getStaff, getCustomerMenu } from '@/mockData';
+import { useStaff, useCustomerMenu } from '@/hooks/useSupabaseData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,8 @@ import type { OrderItem } from '@/types';
 
 const POS = () => {
   const { floorTables, inventory, addOrder, updateTableStatus } = useAppStore();
-  const staff = getStaff().filter(s => s.role === 'Waiter');
-  const menu = getCustomerMenu();
+  const staff = useStaff().filter(s => s.role === 'Waiter');
+  const menu = useCustomerMenu();
 
   const [selectedWaiter, setSelectedWaiter] = useState('');
   const [selectedTable, setSelectedTable] = useState<number | null>(null);

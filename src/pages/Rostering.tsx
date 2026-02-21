@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Wand2, AlertTriangle, Check, Loader2, DollarSign, Clock, MapPin, LogIn, LogOut } from 'lucide-react';
-import { getStaff, getMockRoster, getPayrollSummary } from '@/mockData';
+import { getPayrollSummary } from '@/mockData';
+import { useStaff, useShiftSlots } from '@/hooks/useSupabaseData';
 import { useAppStore } from '@/store/useAppStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +22,14 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const SHIFTS = ['morning', 'afternoon', 'evening'] as const;
 
 const Rostering = () => {
-  const staff = getStaff();
-  const [roster, setRoster] = useState<ShiftSlot[]>(getMockRoster());
+  const staff = useStaff();
+  const initialRoster = useShiftSlots();
+  const [roster, setRoster] = useState<ShiftSlot[]>(initialRoster);
   const payroll = getPayrollSummary();
+
+  useEffect(() => {
+    setRoster(initialRoster);
+  }, [initialRoster]);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [avoidOT, setAvoidOT] = useState(true);
   const [respectAvail, setRespectAvail] = useState(true);
