@@ -1,5 +1,5 @@
 -- ============================================
--- Cognito CRM / MH Cognition ERP – Supabase schema
+-- Cognito CRM – Supabase schema
 -- Run in Supabase Dashboard → SQL Editor (or via Supabase CLI).
 -- Enable Realtime: Database → Replication → add these tables to the publication.
 -- ============================================

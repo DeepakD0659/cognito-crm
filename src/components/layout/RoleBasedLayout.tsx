@@ -109,7 +109,7 @@ const RoleBasedLayout = ({ children }: LayoutProps) => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 font-bold text-lg">
           <Brain className="w-6 h-6 text-primary" />
-          <span className="hidden sm:inline">MH <span className="text-primary">Cognition</span></span>
+          <span className="hidden sm:inline">CRM</span>
         </Link>
 
         {/* Branch Selector */}

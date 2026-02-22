@@ -158,7 +158,7 @@ const Customer = () => {
           <Link to="/" className="text-muted-foreground">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="font-bold text-lg">MH <span className="text-primary">Cognition</span></h1>
+          <h1 className="font-bold text-lg">CRM</h1>
           <div className="flex items-center gap-2">
             {!loggedIn && (
               <Button variant="ghost" size="icon" onClick={() => setLoginDialogOpen(true)}>

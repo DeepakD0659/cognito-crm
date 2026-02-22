@@ -1,4 +1,4 @@
-/** Core types for MH Cognition ERP */
+/** Core types for CRM */
 
 export type Role = 'ADMIN' | 'MANAGER' | 'KITCHEN' | 'CUSTOMER';
 

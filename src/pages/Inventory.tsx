@@ -132,7 +132,7 @@ const Inventory = () => {
             <Card className="bg-card">
               <CardContent className="p-3 text-xs space-y-1">
                 <p><strong>To:</strong> {suppliers.find(s => s.id === selectedSupplier)?.name}</p>
-                <p><strong>Subject:</strong> Purchase Order — MH Cognition</p>
+                <p><strong>Subject:</strong> Purchase Order — CRM</p>
                 <p className="text-muted-foreground mt-2">Dear Supplier,<br/>Please supply the following items at earliest convenience...</p>
               </CardContent>
             </Card>

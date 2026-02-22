@@ -1,10 +1,10 @@
 
 
-# MH Cognition ERP -- 8-Flow Workflow Engine Implementation Plan
+# CRM -- 8-Flow Workflow Engine Implementation Plan
 
 ## Overview
 
-This plan enhances the existing MH Cognition ERP frontend with a production-grade workflow engine covering 8 interconnected operational flows. Since this is Phase 1 (no real backend), all state machines, event buses, and async patterns are implemented client-side using Zustand, custom event emitters, and simulated delays.
+This plan enhances the existing CRM frontend with a production-grade workflow engine covering 8 interconnected operational flows. Since this is Phase 1 (no real backend), all state machines, event buses, and async patterns are implemented client-side using Zustand, custom event emitters, and simulated delays.
 
 ---
 
